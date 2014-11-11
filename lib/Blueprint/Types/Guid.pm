@@ -4,7 +4,7 @@ package Blueprint::Types::Guid;
 
 use Essence::Strict;
 
-use base 'Blueprint::Type';
+use parent 'Blueprint::Type';
 
 use Essence::UUID;
 

@@ -7,7 +7,7 @@ package Blueprint::MetaClass;
 
 use Essence::Strict;
 
-use base 'Blueprint::MetaBase';
+use parent 'Blueprint::MetaBase';
 
 use Blueprint::Utils qw( $ReAttrMethods );
 use Blueprint::MetaAttribute;

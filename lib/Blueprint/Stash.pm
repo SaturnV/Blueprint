@@ -4,7 +4,7 @@ package Blueprint::Stash;
 
 use Essence::Strict;
 
-use base 'Blueprint::StashBase';
+use parent 'Blueprint::StashBase';
 
 use Exporter qw( import );
 our @EXPORT_OK = qw( S );

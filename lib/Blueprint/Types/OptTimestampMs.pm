@@ -4,7 +4,7 @@ package Blueprint::Types::OptTimestampMs;
 
 use Essence::Strict;
 
-use base 'Blueprint::Types::Verify';
+use parent 'Blueprint::Types::Verify';
 
 use Blueprint::Verify;
 

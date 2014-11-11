@@ -5,7 +5,7 @@ package Blueprint::StashBase;
 
 use Essence::Strict;
 
-use base 'Blueprint::InheritableData';
+use parent 'Blueprint::InheritableData';
 
 use Carp;
 

@@ -4,7 +4,7 @@ package Blueprint::Types::Json;
 
 use Essence::Strict;
 
-use base 'Blueprint::Type';
+use parent 'Blueprint::Type';
 
 use JSON;
 

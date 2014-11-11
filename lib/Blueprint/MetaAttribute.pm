@@ -7,7 +7,7 @@ package Blueprint::MetaAttribute;
 
 use Essence::Strict;
 
-use base 'Blueprint::MetaBase';
+use parent 'Blueprint::MetaBase';
 
 use List::MoreUtils;
 

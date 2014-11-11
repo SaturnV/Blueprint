@@ -4,7 +4,7 @@ package Blueprint::Type;
 
 use Essence::Strict;
 
-use base 'Essence::Logger::Mixin';
+use parent 'Essence::Logger::Mixin';
 
 use Blueprint::Verify;
 

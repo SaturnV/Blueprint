@@ -7,7 +7,7 @@ package Blueprint::MetaBase;
 
 use Essence::Strict;
 
-use base qw( Essence::Logger::Mixin Blueprint::InheritableData );
+use parent qw( Essence::Logger::Mixin Blueprint::InheritableData );
 
 use Essence::Module;
 use List::Util;

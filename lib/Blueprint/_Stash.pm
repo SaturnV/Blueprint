@@ -4,7 +4,7 @@ package Blueprint::_Stash;
 
 use Essence::Strict;
 
-use base 'Blueprint::StashBase';
+use parent 'Blueprint::StashBase';
 
 sub IsInsideMethod
 {

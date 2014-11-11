@@ -4,7 +4,7 @@ package Blueprint::Types::OptJson;
 
 use Essence::Strict;
 
-use base 'Blueprint::Types::Json';
+use parent 'Blueprint::Types::Json';
 
 use Blueprint::Verify;
 

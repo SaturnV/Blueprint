@@ -4,7 +4,7 @@ package Blueprint::Types::Verify;
 
 use Essence::Strict;
 
-use base 'Blueprint::Type';
+use parent 'Blueprint::Type';
 
 use Blueprint::Verify;
 

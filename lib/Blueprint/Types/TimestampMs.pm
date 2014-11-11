@@ -4,7 +4,7 @@ package Blueprint::Types::TimestampMs;
 
 use Essence::Strict;
 
-use base 'Blueprint::Type';
+use parent 'Blueprint::Type';
 
 use Essence::Time qw( fmt_gmtime_ms );
 
