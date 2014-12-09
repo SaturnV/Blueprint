@@ -4,7 +4,7 @@ package Blueprint::Types::Guid;
 
 use Essence::Strict;
 
-use parent 'Blueprint::Type';
+use parent 'Blueprint::Types::Verify';
 
 use Essence::UUID;
 
@@ -15,8 +15,8 @@ my $v_guid = v_guid();
 sub infect
 {
   my ($self, $meta) = @_;
-  $self->_infect($meta, 'verify');
   $meta->_SetConfig(':builder.new', \&__builder_new);
+  return shift->next::method(@_);
 }
 
 sub _checker { return $v_guid }

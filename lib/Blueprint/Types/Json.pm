@@ -4,7 +4,7 @@ package Blueprint::Types::Json;
 
 use Essence::Strict;
 
-use parent 'Blueprint::Type';
+use parent 'Blueprint::Types::Verify';
 
 use JSON;
 
@@ -15,9 +15,9 @@ our $V_Json = v_ref('HASH', 'ARRAY');
 sub infect
 {
   my ($self, $meta) = @_;
-  $self->_infect($meta, 'verify');
   $self->_infect($meta, 'SerializeToDb');
   $self->_infect($meta, 'deserialize_from_db');
+  return shift->next::method(@_);
 }
 
 sub _checker { return $V_Json }
