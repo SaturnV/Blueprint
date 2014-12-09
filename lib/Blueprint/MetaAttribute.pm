@@ -33,7 +33,7 @@ sub _PreConfigure
 {
   my ($self, $config) = @_;
 
-  $self->AddType(delete($config->{':type'}))
+  $self->AddType(delete($config->{':type'}), $config)
    if exists($config->{':type'});
 
   return shift->next::method(@_);
@@ -75,7 +75,7 @@ sub _Configure
 
 sub AddType
 {
-  my ($self, $type) = @_;
+  my ($self, $type, @rest) = @_;
 
   $self->Croak("Already has a type")
     if $self->GetOwnConfig(':type');
@@ -90,7 +90,7 @@ sub AddType
     if (!$type_ || ($type_ ne $type))
     {
       $self->_KillType();
-      $self->_AddTrait($type);
+      $self->_AddTrait($type, @rest);
     }
   }
   else

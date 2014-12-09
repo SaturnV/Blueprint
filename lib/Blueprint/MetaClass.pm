@@ -39,13 +39,13 @@ sub _PreConfigure
     {
       foreach my $trait (keys(%{$traits}))
       {
-        $self->AddTrait($trait, $traits->{$trait});
+        $self->AddTrait($trait, $traits->{$trait}, $config);
       }
     }
     elsif (ref($traits) eq 'ARRAY')
     {
       my @traits = @{$traits};
-      $self->AddTrait(shift(@{$traits}), shift(@{$traits}))
+      $self->AddTrait(shift(@{$traits}), shift(@{$traits}), $config)
         while @traits;
     }
     elsif (defined($traits))

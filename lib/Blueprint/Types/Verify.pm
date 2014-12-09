@@ -37,6 +37,7 @@ sub _verify
 
 sub infect
 {
+  # my ($self, $meta, $config) = @_;
   my ($self, $meta) = @_;
   $self->_infect($meta, 'verify');
 }

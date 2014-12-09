@@ -19,7 +19,7 @@ my $mod_name = __PACKAGE__;
 
 sub infect
 {
-  my ($my_class, $metaclass, $params) = @_;
+  my ($my_class, $metaclass, $params, $class_config) = @_;
 
   croak "$mod_name: Can only infect classes"
     unless $metaclass->isa('Blueprint::MetaClass');

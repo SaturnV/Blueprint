@@ -14,6 +14,7 @@ our $V_Json = v_ref('HASH', 'ARRAY');
 
 sub infect
 {
+  # my ($self, $meta, $config) = @_;
   my ($self, $meta) = @_;
   $self->_infect($meta, 'SerializeToDb');
   $self->_infect($meta, 'deserialize_from_db');

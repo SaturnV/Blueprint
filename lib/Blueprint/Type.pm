@@ -23,4 +23,13 @@ sub _infect
   $meta->_AddHook($hook_name, 'type', $sub);
 }
 
+# sub _ExampleHook
+# {
+#   #     0      1      2           3       4           5
+#   # my ($self, $next, $hook_name, $stash, $metaclass, $metaattr,
+#   #     6     7
+#   #     $obj, @rest) = @_;
+#  shift; return shift->(@_);
+# }
+
 1

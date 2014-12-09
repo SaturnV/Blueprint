@@ -14,6 +14,7 @@ my $v_dtus = v_datetime_us();
 
 sub infect
 {
+  # my ($self, $meta, $config) = @_;
   my ($self, $meta) = @_;
   $meta->_SetConfig(':builder.new', \&__builder_new);
   return shift->next::method(@_);
