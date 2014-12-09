@@ -177,7 +177,7 @@ sub _RunHook
   return $self->_HookTerminator($hook_name, @_)
     unless @callbacks;
 
-  my $hook = sub { return $self->_HookTerminator($hook_name, @_) };
+  my $hook = sub { shift; return $self->_HookTerminator($hook_name, @_) };
   while (@callbacks)
   {
     my $next = $hook;
