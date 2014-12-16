@@ -51,6 +51,7 @@ sub _DbWhere
     my $id_attr = $metaclass->GetAttribute('id');
     $key = 'id' if ($id_attr && $id_attr->GetMeta('db'));
   }
+
   if (ref($key))
   {
     $where->{$_} = $obj->Get($_)
