@@ -188,32 +188,28 @@ sub __bp__Initialize
   shift; shift;
   my ($metaclass, $obj, $init) = @_;
 
-  if (!defined($init) || (ref($init) eq 'HASH'))
+  $metaclass->Croak("Initializer should be undef or hash")
+    if (defined($init) && (ref($init) ne 'HASH'));
+
+  my %done;
+  foreach ($metaclass->GetAttributeNames())
   {
-    my %done;
-    foreach ($metaclass->GetAttributeNames())
+    $done{$_} = 1;
+
+    if ($init && exists($init->{$_}))
     {
-      $done{$_} = 1;
-
-      if ($init && exists($init->{$_}))
-      {
-        $obj->_InitializeAttribute($_, $init->{$_});
-      }
-      else
-      {
-        $obj->_InitializeAttribute($_);
-      }
+      $obj->_InitializeAttribute($_, $init->{$_});
     }
+    else
+    {
+      $obj->_InitializeAttribute($_);
+    }
+  }
 
-    my @missed = grep { !$done{$_} } keys(%{$init});
-    $metaclass->Croak(
-        "Bad initializers: " . join(', ', @missed))
-      if @missed;
-  }
-  else
-  {
-    $metaclass->Croak("Initializer should be undef or hash");
-  }
+  my @missed = grep { !$done{$_} } keys(%{$init});
+  $metaclass->Croak(
+      "Bad initializers: " . join(', ', @missed))
+    if @missed;
 
   $obj->Verify();
 
