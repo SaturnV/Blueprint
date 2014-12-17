@@ -90,6 +90,7 @@ sub __bp_run_hook
 sub blueprint
 {
   my $class = shift;
+  $class = ref($class) if ref($class);
 
   croak "Trying to redefine $class"
     if exists($Blueprint::Classes{$class});
