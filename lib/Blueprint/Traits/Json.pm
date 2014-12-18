@@ -58,8 +58,6 @@ sub __SerializeToJson_Class
   {
     $metaattr = $metaclass->GetAttribute($f);
     next unless $metaattr->GetMeta('json');
-    warn "d $f " . Data::Dumper::Dumper($metaattr)
-      if ($f eq 'b');
 
     @v = $metaattr->_RunHook(
         $hook_name, $hook_name, $stash, $metaclass, $metaattr,
