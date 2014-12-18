@@ -27,6 +27,22 @@ sub _Initialize
   return $self;
 }
 
+sub CheckReadOnly
+{
+  # my ($self, $stash) = @_;
+  my $err;
+
+  if (my $ro = $_[0]->GetConfig(':ro'))
+  {
+    $err = "Trying to set read-only attribute"
+      if ($_[1]->IsInsideMethod('new') ?
+              ($ro =~ /\bnew\b/) :
+              ($ro =~ /\bSet\b/));
+  }
+
+  return $err;
+}
+
 # ==== Configuration ==========================================================
 
 sub _PreConfigure
@@ -177,15 +193,7 @@ sub __bp_Set
   my ($hook_name, $stash, $metaclass, $metaattr, $obj, $n, $v) =
       (shift, shift, shift, shift, shift, @_);
 
-  my $err;
-  if (my $ro = $metaattr->GetConfig(':ro'))
-  {
-    $err = "Trying to set read-only attribute"
-      if ($stash->IsInsideMethod('new') ?
-              ($ro =~ /\bnew\b/) :
-              ($ro =~ /\bSet\b/));
-  }
-  $err //= $obj->verify(@_);
+  my $err = $metaattr->CheckReadOnly($stash) // $obj->verify(@_);
   $metaattr->Confess($err) if $err;
 
   return $obj->RawSet(@_);

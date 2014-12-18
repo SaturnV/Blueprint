@@ -186,6 +186,11 @@ sub get_metaclass
 
 # ==== Constructor ============================================================
 
+sub _new
+{
+  return shift->__bp_run_hook('_new', @_);
+}
+
 # my $obj = Class->new({ 'attr' => $value });
 sub new
 {

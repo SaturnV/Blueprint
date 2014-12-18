@@ -126,6 +126,10 @@ sub _Fields
   {
     return $metaclass->GetAttributeNames();
   }
+  elsif ($f eq ':none')
+  {
+    return ();
+  }
   elsif ($f eq ':dirty')
   {
     return $obj->GetDirty();
@@ -175,11 +179,18 @@ sub Fields
 
 # ---- Object construction ----------------------------------------------------
 
+sub __bp__new
+{
+  # my ($hook_name, $stash, $metaclass, $class, @rest) = @_;
+  my (undef, $stash, undef, $class) = (shift, shift, shift, shift);
+  return bless({}, $class);
+}
+
 sub __bp_new
 {
   # my ($hook_name, $stash, $metaclass, $class, @rest) = @_;
   my (undef, $stash, undef, $class) = (shift, shift, shift, shift);
-  return bless({}, $class)->_Initialize($stash, @_);
+  return $class->_new($stash)->_Initialize($stash, @_);
 }
 
 sub __bp__Initialize
@@ -346,7 +357,7 @@ sub __forward_to_attr
   #   unless ref($obj);
 
   my $metaattr = $metaclass->GetAttribute($n) or
-    $metaclass->Croak("$hook_name called for unknown property '$n'");
+    $metaclass->Confess("$hook_name called for unknown property '$n'");
 
   return $metaattr->_RunHook(
       $hook_name, $hook_name, $stash, $metaclass, $metaattr, @_);
@@ -357,15 +368,15 @@ sub _HookDefaultAction
   # ($self, $hook_name, @run_hook_args) = @_;
   my $sub;
 
-  if ($_[1] =~ $ReAttrMethods)
-  {
-    shift; shift;
-    return __forward_to_attr(@_);
-  }
-  elsif ($sub = $_[0]->can("__bp_$_[1]"))
+  if ($sub = $_[0]->can("__bp_$_[1]"))
   {
     shift; shift;
     return $sub->(@_);
+  }
+  elsif ($_[1] =~ $ReAttrMethods)
+  {
+    shift; shift;
+    return __forward_to_attr(@_);
   }
 
   return shift->next::method(@_);
