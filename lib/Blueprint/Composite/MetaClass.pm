@@ -309,29 +309,32 @@ sub __attr_all
   }
 }
 
-sub __attr_first
+sub __bp_RawSet { return __attr_all(@_) }
+sub __bp__Set { return __attr_all(@_) }
+
+sub __bp_verify
 {
-  # my ($hook_name, $stash, $metaclass, $obj, $attr_name, ...) = @_;
-  my ($hook_name, $stash, $metaclass, $obj, @rest) = @_;
+  # my ($hook_name, $stash, $metaclass, $class, $attr_name, ...) = @_;
+  my ($hook_name, $stash, $metaclass, $class, @rest) = @_;
   my ($attr_name) = @rest;
 
   if (wantarray)
   {
     my @ret;
-    foreach my $c ($obj->GetComponents($stash))
+    foreach my $c (@{$metaclass->GetConfig(':components')})
     {
       return @ret
-        if (ref($c)->get_metaclass()->GetAttribute($attr_name) &&
+        if ($c->get_metaclass()->GetAttribute($attr_name) &&
             (@ret = $c->$hook_name($stash, @rest)));
     }
   }
   else
   {
     my $ret;
-    foreach my $c ($obj->GetComponents($stash))
+    foreach my $c (@{$metaclass->GetConfig(':components')})
     {
       return $ret
-        if (ref($c)->get_metaclass()->GetAttribute($attr_name) &&
+        if ($c->get_metaclass()->GetAttribute($attr_name) &&
             defined($ret = $c->$hook_name($stash, @rest)));
     }
   }
@@ -339,9 +342,6 @@ sub __attr_first
   return;
 }
 
-sub __bp_RawSet { return __attr_all(@_) }
-sub __bp__Set { return __attr_all(@_) }
-sub __bp_verify { return __attr_first(@_) }
 
 ###############################################################################
 
