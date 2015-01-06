@@ -124,6 +124,7 @@ sub db_load
 sub DbInsert
 {
   my ($obj, $stash) = @_;
+  my $ret;
 
   croak "$mod_name: DbInsert called on $obj (class)"
     unless ref($obj);
@@ -138,7 +139,31 @@ sub DbInsert
   my $table = $metaclass->GetConfig('db.table') or
     $metaclass->Croak("DbInsert: No table given");
 
-  return $db->do_insert($table, $db_obj);
+  $ret = $db->do_insert($table, $db_obj);
+
+  my $serial = $metaclass->GetConfig('db.serial');
+  if (ref($serial))
+  {
+    die "$mod_name: Bad db.serial for '" . ref($obj) . "'\n"
+      unless (ref($serial) eq 'ARRAY');
+    die "$mod_name: Multiple db.serial attributes for '" . ref($obj) . "'\n"
+      if (scalar(@{$serial}) > 1);
+
+    $serial = $serial->[0];
+
+    die "$mod_name: Bad db.serial for '" . ref($obj) . "'\n"
+      if ref($serial);
+  }
+
+  if (defined($serial))
+  {
+    # TODO $catalog, $schema, $table, $field, \%attr
+    my $v = $db->db_op('last_insert_id', undef, undef, undef, undef);
+    $obj->_Set($stash, $serial => $v)
+      if defined($v);
+  }
+
+  return $ret;
 }
 
 # ==== UPDATE =================================================================
