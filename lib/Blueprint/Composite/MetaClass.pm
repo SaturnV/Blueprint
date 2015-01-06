@@ -160,7 +160,7 @@ sub __bp__Initialize
     push(@c_objs, $c_obj);
   }
 
-  my @missed = grep { !$done{$_} } keys(%{$init});
+  my @missed = grep { !$done{$_} } keys(%{$init_in});
   $metaclass->Croak(
       "Bad initializers: " . join(', ', @missed))
     if @missed;
