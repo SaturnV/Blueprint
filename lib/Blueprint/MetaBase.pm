@@ -53,7 +53,8 @@ sub __Configure
   $self->{'config'} = {};
 
   my $config_tmp = {};
-  foreach (keys(%{$config_in}))
+  # x.y should be set after x
+  foreach (sort keys(%{$config_in}))
   {
     if (/^:/)
     {
