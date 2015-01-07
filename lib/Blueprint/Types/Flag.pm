@@ -20,7 +20,7 @@ sub infect
   $meta->_SetConfig('mask' => $mask);
 
   $self->_infect($meta, 'Get');
-  $self->_infect($meta, '_Set');
+  $self->_infect($meta, 'RawSet');
 
   return shift->next::method(@_);
 }
@@ -39,7 +39,7 @@ sub _Get
   return (($_[6]->Get($field) // 0) & $mask) ? 1 : 0;
 }
 
-sub __Set
+sub _RawSet
 {
   #     0      1      2           3       4           5
   # my ($self, $next, $hook_name, $stash, $metaclass, $metaattr,
