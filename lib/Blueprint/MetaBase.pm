@@ -178,7 +178,18 @@ sub _RunHook
   return $self->_HookTerminator($hook_name, @_)
     unless @callbacks;
 
-  my $hook = sub { shift; return $self->_HookTerminator($hook_name, @_) };
+  # Handlers are called with $next as first parameter
+  # A handler should look like this:
+  # sub __some_hook_handler
+  # {
+  #   my ($next, @rest) = @_;
+  #   return $next->(@rest);
+  # }
+  # So $next is called without $next.
+
+  # This is the last $next => no need to shift $next
+  my $hook = sub { return $self->_HookTerminator($hook_name, @_) };
+
   while (@callbacks)
   {
     my $next = $hook;
