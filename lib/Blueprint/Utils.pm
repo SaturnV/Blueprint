@@ -29,9 +29,18 @@ our $ReName = qr/(?:$ReNameComponent(\.$ReNameComponent)*)/;
 
 # Standalone
 our $ReClassMethods = qr/^(?:new|verify)\z/;
-our $ReInstanceMethods =
-     qr/^(?:_Initialize|Clone|(?:Get|Set|Clear)Dirty|Edit)\z/;
-our $ReAttrMethods = qr/^(?:_InitializeAttribute|Get|(?:_|Raw)?Set|verify)\z/;
+our $ReInstanceMethods = qr/
+    ^ (?: _Initialize |
+          Clone |
+          (?:Get|Set|Clear)Dirty |
+          Edit |
+          Verify )\z/x;
+our $ReAttrMethods = qr/
+    ^ (?: _InitializeAttribute |
+          _CloneAttribute |
+          Get |
+          (?:_|Raw)?Set |
+          verify ) \z /x;
 
 ###### SUBS ###################################################################
 

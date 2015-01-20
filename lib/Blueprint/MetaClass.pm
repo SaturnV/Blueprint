@@ -74,18 +74,23 @@ sub _Configure
 
 # ==== Attributes =============================================================
 
-sub AddAttribute
+sub __bp__Meta_AddAttribute
 {
-  my ($self, $attr_name, $attr_conf, $inherited_from) = @_;
+  my ($hook_name, $stash, $metaclass, $class,
+      $attr_name, $attr_conf, $inherited_from) = @_;
 
-  my $defaults = $self->GetConfig(':defaults');
-  $attr_conf = Blueprint::Utils::merge($attr_conf, $defaults)
-    if ($attr_conf && $defaults);
+  if ($attr_conf)
+  {
+    my $defaults = $metaclass->GetConfig(':defaults');
+    $attr_conf = Blueprint::Utils::merge($attr_conf, $defaults)
+      if $defaults;
+    $attr_conf->{':class'} = $metaclass->GetName();
+  }
 
   my $metaattr = Blueprint::MetaAttribute->new(
-      $attr_name, $inherited_from, $attr_conf // {}, $self);
-  push(@{$self->{'@attributes'}}, $attr_name);
-  $self->{'%attributes'}->{$attr_name} = $metaattr;
+      $attr_name, $inherited_from, $attr_conf // {}, $metaclass);
+  push(@{$metaclass->{'@attributes'}}, $attr_name);
+  $metaclass->{'%attributes'}->{$attr_name} = $metaattr;
 
   return $metaattr;
 }
@@ -239,12 +244,9 @@ sub __bp_Clone
   my @v;
   foreach my $attr_name ($metaclass->GetAttributeNames())
   {
-    next if exists($clone->{$attr_name});
-
-    @v = __forward_to_attr(
-        $hook_name, $stash, $metaclass, $obj, $attr_name,
-        $clone, $patch);
-    $clone->{$attr_name} = $v[0] if @v;
+    $clone->{$attr_name} = $v[0]
+      if (!exists($clone->{$attr_name}) &&
+          (@v = $obj->_CloneAttribute($attr_name, $clone, $patch)));
   }
 
   return $class->new($stash, $clone);

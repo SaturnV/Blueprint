@@ -59,27 +59,35 @@ sub __bp_run_hook
   my $metaclass = $obj->get_metaclass() or
     croak "No metadata for " . Blueprint::Utils::classify($obj);
 
-  if (wantarray)
+  my $err;
+  my $wantarray = wantarray;
+  eval
   {
-    @ret = $metaclass->_RunHook(
-        $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
-  }
-  elsif (defined(wantarray))
-  {
-    $ret[0] = $metaclass->_RunHook(
-        $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
-  }
-  else
-  {
-    $metaclass->_RunHook(
-        $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
-  }
+    if ($wantarray)
+    {
+      @ret = $metaclass->_RunHook(
+          $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
+    }
+    elsif (defined($wantarray))
+    {
+      $ret[0] = $metaclass->_RunHook(
+          $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
+    }
+    else
+    {
+      $metaclass->_RunHook(
+          $hook_name, $hook_name, $stash, $metaclass, $obj, @_);
+    }
+  };
+  $err = $@;
 
   # Stash cleanup
   $obj->{':stash'} = $parent
     if (ref($obj) &&
         defined($obj->{':stash'}) &&
         ($obj->{':stash'} eq $stash));
+
+  die $err if $err;
 
   return @ret if wantarray;
   return $ret[0];
@@ -132,8 +140,9 @@ sub blueprint
   my @class_ancestors = Blueprint::Utils::get_super_metaclasses($class);
 
   # Create metaclass
-  my $metaclass = Blueprint::MetaClass->new(
-      $class, \@class_ancestors, \%config);
+  my $metaclass = $Blueprint::Classes{$class} =
+      Blueprint::MetaClass->new(
+          $class, \@class_ancestors, \%config);
 
   # Inherited attributes
   my @inherited_attributes;
@@ -160,21 +169,30 @@ sub blueprint
 
   # Merge inherited + own attributes, create
   {
+    my $stash = Blueprint::_Stash->new();
+
+    $metaclass->_RunHook('_Meta_BuildBegin',
+        '_Meta_BuildBegin', $stash, $metaclass, $class);
+
     my %done;
     foreach my $attr_name (@inherited_attributes, @own_attributes)
     {
       next if $done{$attr_name};
 
-      $metaclass->AddAttribute(
+      $metaclass->_RunHook('_Meta_AddAttribute',
+          '_Meta_AddAttribute', $stash, $metaclass, $class,
           $attr_name,
           $own_attributes{$attr_name},
           $attribute_ancestors{$attr_name});
 
       $done{$attr_name} = 1;
     }
+
+    $metaclass->_RunHook('_Meta_BuildEnd',
+        '_Meta_BuildEnd', $stash, $metaclass, $class);
   }
 
-  return $Blueprint::Classes{$class} = $metaclass;
+  return $metaclass;
 }
 
 # ==== Class methods ==========================================================
@@ -262,6 +280,12 @@ sub _InitializeAttribute
 {
   # my ($self, $n, $v?) = @_;
   return shift->__bp_run_hook('_InitializeAttribute', @_);
+}
+
+sub _CloneAttribute
+{
+  # my ($self, $n, $v?) = @_;
+  return shift->__bp_run_hook('_CloneAttribute', @_);
 }
 
 sub Get

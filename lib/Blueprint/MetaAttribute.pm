@@ -59,6 +59,9 @@ sub _Configure
 {
   my ($self, $config, $metaclass) = @_;
 
+  $self->_SetConfig(':class', delete($config->{':class'}))
+    if exists($config->{':class'});
+
   foreach my $m (qw( new Get ))
   {
     $self->_SetConfig(":default.$m" => delete($config->{":default.$m"}))
@@ -157,7 +160,7 @@ sub __bp__InitializeAttribute
   return $obj;
 }
 
-sub __bp_Clone
+sub __bp__CloneAttribute
 {
   #     0           1       2           3          4     5
   # my ($hook_name, $stash, $metaclass, $metaattr, $obj, $n,
