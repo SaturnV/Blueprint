@@ -51,9 +51,14 @@ sub infect
       }
     }
   }
-  $metaclass->_SetConfig('components.metaattrs' => \%c_metaattrs);
-  $metaclass->_SetConfig('components.forwarded' => \@forwarded);
-  $metaclass->_SetConfig('components.classes' => $params);
+  $metaclass->_SetConfig(
+      'components' =>
+          {
+            'own_attributes' => {},
+            'metaattrs' => \%c_metaattrs,
+            'forwarded' => \@forwarded,
+            'classes' => $params
+          });
 
   # Infect
   foreach my $hook (qw( _Meta_AddAttribute _Meta_BuildEnd
@@ -190,6 +195,9 @@ sub ___Meta_AddAttribute
   my ($hook_name, $stash, $metaclass, $class,
       $attr_name, $attr_conf, $inherited_from) = @rest;
 
+  $metaclass->_SetConfig(
+      "components.own_attributes.$attr_name" => 1)
+    if $attr_conf;
   my $c_metaattrs = $metaclass->GetConfig('components.metaattrs');
   $rest[6] = [ @{$inherited_from // []},
                @{$c_metaattrs->{$attr_name}} ]
@@ -203,11 +211,7 @@ sub ___Meta_BuildEnd
   my ($next, @rest) = @_;
   my ($hook_name, $stash, $metaclass, $class) = @rest;
 
-  my $attributes = $metaclass->{'%attributes'};
-  my $own_attributes = { %{$attributes} };
-  $metaclass->_SetConfig(
-      'components.own_attributes' => $own_attributes);
-
+  my $own_attributes = $metaclass->GetConfig('components.own_attributes');
   my $forwarded = $metaclass->GetConfig('components.forwarded');
   foreach my $attr_name (@{$forwarded})
   {

@@ -78,6 +78,17 @@ sub do_cmp
 
 ###### CODE ###################################################################
 
+is_deeply(
+    [TestClassC->get_components()],
+    [qw( TestClassA TestClassB )],
+    'Components');
+
+my $mc = TestClassC->get_metaclass();
+is_deeply(
+    [sort keys(%{$mc->GetConfig('components.own_attributes')})],
+    [sort qw( c ac bc abc p_c )],
+    'Own attributes');
+
 # new
 my $cmp =
     {
@@ -200,6 +211,17 @@ my $json_got = $obj->SerializeToJson();
 is_deeply($json_got, $json_good, 'Json');
 
 # d
+is_deeply(
+    [TestClassD->get_components()],
+    [qw( TestClassA TestClassB )],
+    'D Components');
+
+$mc = TestClassD->get_metaclass();
+is_deeply(
+    [sort keys(%{$mc->GetConfig('components.own_attributes')})],
+    [sort qw( c ac bc abc p_c d )],
+    'D Own attributes');
+
 $cmp->{'d'} = 77;
 $obj = TestClassD->new({ %{$cmp} });
 isa_ok($obj, 'TestClassD', 'D new');
