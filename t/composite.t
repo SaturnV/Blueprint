@@ -54,6 +54,16 @@ use Essence::Logger;
       'p_c' => { ':type' => 'uint' });
 }
 
+{
+  package TestClassD;
+  use Essence::Strict;
+
+  our @ISA = qw( TestClassC );
+
+  __PACKAGE__->blueprint(
+      'd' => { ':type' => 'uint', 'json' => 1 });
+}
+
 ###### SUBS ###################################################################
 
 sub do_cmp
@@ -128,12 +138,12 @@ foreach my $attr (sort keys(%{$set}))
 }
 
 # Set bad
-dies_ok { $obj->Set('a' => 'alma') } 'set bad';
+dies_ok { $obj->Set('a' => 'alma') } 'Set bad';
 is_deeply([$obj->Get('a')], [$cmp->{'a'}], 'Set bad composite');
 is_deeply([$cs[0]->Get('a')], [$cmp_a->{'a'}], 'Set bad component');
 
 # Set half bad
-dies_ok { $obj->Set('abc' => undef) } 'set halfbad';
+dies_ok { $obj->Set('abc' => undef) } 'Set halfbad';
 is_deeply([$obj->Get('abc')], [$cmp->{'abc'}], 'Set halfbad composite');
 is_deeply([$cs[0]->Get('abc')], [$cmp_a->{'abc'}], 'Set halfbad A');
 is_deeply([$cs[1]->Get('abc')], [$cmp_b->{'abc'}], 'Set halfbad B');
@@ -141,13 +151,13 @@ is_deeply([$cs[1]->Get('abc')], [$cmp_b->{'abc'}], 'Set halfbad B');
 # Dirty
 is_deeply([ sort $obj->GetDirty() ],
           [ sort keys(%{$set}) ],
-          'dirty');
+          'Dirty');
 is_deeply([ sort $cs[0]->GetDirty() ],
           [ sort grep { /a/ } keys(%{$set}) ],
-          'dirty A');
+          'Dirty A');
 is_deeply([ sort $cs[1]->GetDirty() ],
           [ sort grep { /b/ } keys(%{$set}) ],
-          'dirty B');
+          'Dirty B');
 
 $obj->ClearDirty();
 is_deeply([$obj->GetDirty()], [], 'ClearDirty');
@@ -169,12 +179,14 @@ do_cmp($cs_[1], $cmp_b, 'Clone B ');
 # assemble bad
 my $init = {};
 $init->{$_} = $cmp->{$_} foreach (grep { /c/ } keys(%{$cmp}));
-dies_ok { TestClassC->assemble($init, 'a') } 'assemble bad 1';
-dies_ok { TestClassC->assemble($init, $cs[0]) } 'assemble bad 2';
-dies_ok { TestClassC->assemble($init, $cs[1]) } 'assemble bad 3';
-dies_ok { TestClassC->assemble($init, $cs[0], bless({}, 'X')) } 'assemble bad 4';
-dies_ok { TestClassC->assemble($init, bless({}, 'X'), $cs[1]) } 'assemble bad 5';
-dies_ok { TestClassC->assemble(@cs) } 'assemble bad 6';
+dies_ok { TestClassC->assemble($init, 'a') } 'Assemble bad 1';
+dies_ok { TestClassC->assemble($init, $cs[0]) } 'Assemble bad 2';
+dies_ok { TestClassC->assemble($init, $cs[1]) } 'Assemble bad 3';
+dies_ok { TestClassC->assemble($init, $cs[0], bless({}, 'X')) }
+    'Assemble bad 4';
+dies_ok { TestClassC->assemble($init, bless({}, 'X'), $cs[1]) }
+    'Assemble bad 5';
+dies_ok { TestClassC->assemble(@cs) } 'Assemble bad 6';
 
 # assemble good
 $obj = TestClassC->assemble($init, @cs);
@@ -185,6 +197,54 @@ my $json_good = {};
 $json_good->{$_} = $cmp->{$_} foreach (grep { !/p/ } keys(%{$cmp}));
 
 my $json_got = $obj->SerializeToJson();
-is_deeply($json_got, $json_good, 'json');
+is_deeply($json_got, $json_good, 'Json');
+
+# d
+$cmp->{'d'} = 77;
+$obj = TestClassD->new({ %{$cmp} });
+isa_ok($obj, 'TestClassD', 'D new');
+
+@cs = $obj->GetComponents();
+is(scalar(@cs), 2, 'D parts length');
+isa_ok($cs[0], 'TestClassA', 'D Components A');
+isa_ok($cs[1], 'TestClassB', 'D Components B');
+do_cmp($cs[0], $cmp_a, 'D A');
+do_cmp($cs[1], $cmp_b, 'D B');
+
+$set =
+    {
+      'a' => 2001,
+      'b' => 2002,
+      'c' => 2003,
+      'ab' => 2004,
+      'ac' => 2005,
+      'bc' => 2006,
+      'abc' => 2007,
+      'd' => 2008
+    };
+foreach my $attr (sort keys(%{$set}))
+{
+  $obj->Set($attr => $set->{$attr});
+  $cmp->{$attr} = $set->{$attr};
+  $cmp_a->{$attr} = $set->{$attr} if ($attr =~ /a/);
+  $cmp_b->{$attr} = $set->{$attr} if ($attr =~ /b/);
+  do_cmp($obj, $cmp, "D Set $attr good ");
+  do_cmp($cs[0], $cmp_a, "D Set $attr good A ");
+  do_cmp($cs[1], $cmp_b, "D Set $attr good B ");
+}
+
+dies_ok { $obj->Set('a' => 'alma') } 'D Set bad';
+is_deeply([$obj->Get('a')], [$cmp->{'a'}], 'D Set bad composite');
+is_deeply([$cs[0]->Get('a')], [$cmp_a->{'a'}], 'D Set bad component');
+
+dies_ok { $obj->Set('abc' => undef) } 'D Set halfbad';
+is_deeply([$obj->Get('abc')], [$cmp->{'abc'}], 'D Set halfbad composite');
+is_deeply([$cs[0]->Get('abc')], [$cmp_a->{'abc'}], 'D Set halfbad A');
+is_deeply([$cs[1]->Get('abc')], [$cmp_b->{'abc'}], 'D Set halfbad B');
+
+$json_good = {};
+$json_good->{$_} = $cmp->{$_} foreach (grep { !/p/ } keys(%{$cmp}));
+$json_got = $obj->SerializeToJson();
+is_deeply($json_got, $json_good, 'D Json');
 
 done_testing();
