@@ -67,7 +67,7 @@ sub infect
   }
 
   # New hooks
-  foreach my $hook (qw( assemble GetComponents ))
+  foreach my $hook (qw( assemble get_components GetComponents ))
   {
     Blueprint::MetaClass->add_default_handler(
         $hook, $mod_name, $mod_name->can("__$hook"));
@@ -111,6 +111,12 @@ sub __assemble
   $obj->Verify($stash);
 
   return $obj;
+}
+
+sub __get_components
+{
+  # my ($hook_name, $stash, $metaclass, $class, @rest) = @_;
+  return @{$_[2]->GetConfig('components.classes')};
 }
 
 sub __GetComponents

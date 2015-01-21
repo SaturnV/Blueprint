@@ -16,6 +16,7 @@ my $mod_name = __PACKAGE__;
 # ==== Constructor ============================================================
 
 sub assemble { return shift->__bp_run_hook('assemble', @_) }
+sub get_components { return shift->__bp_run_hook('get_components', @_) }
 
 # ==== Instance methods =======================================================
 
