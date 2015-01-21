@@ -153,7 +153,7 @@ sub __context_call
 sub __verify
 {
   my ($next, @rest) = @_;
-  my ($hook_name, $stash, $metaclass, $obj, $n, @v) = @rest;
+  my ($hook_name, $stash, $metaclass, $class, $n, @v) = @rest;
   my (@ret, $ret);
 
   my $own_attributes = $metaclass->GetConfig('components.own_attributes');
@@ -163,13 +163,13 @@ sub __verify
   if (!(wantarray ? @ret : $ret))
   {
     my $found;
-    foreach my $c ($obj->GetComponents())
+    foreach my $c_class ($class->get_components())
     {
-      if ($c->get_metaclass()->GetAttribute($n))
+      if ($c_class->get_metaclass()->GetAttribute($n))
       {
         $found = 1;
         __context_call(wantarray, \@ret, \$ret,
-            sub { $c->verify($stash, $n, @v) });
+            sub { $c_class->verify($stash, $n, @v) });
         last if (wantarray ? @ret : $ret);
       }
     }
