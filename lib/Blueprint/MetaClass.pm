@@ -204,7 +204,7 @@ sub __bp__Initialize
   shift; shift;
   my ($metaclass, $obj, $init) = @_;
 
-  $metaclass->Croak("Initializer should be undef or hash")
+  $metaclass->Confess("Initializer should be undef or hash")
     if (defined($init) && (ref($init) ne 'HASH'));
 
   my %done;
@@ -329,13 +329,16 @@ sub __bp_Edit
     $metaclass->Croak("Bad data for $hook_name")
       unless (ref($data) eq 'HASH');
 
-    my $metaattr;
     foreach my $attr_name (keys(%{$data}))
     {
       $metaclass->Croak("$hook_name: Unknown attribute '$attr_name'")
-        unless ($metaattr = $metaclass->GetAttribute($attr_name));
-      # TODO Check metadata
-      $obj->Set($attr_name => $data->{$attr_name});
+        unless $metaclass->GetAttribute($attr_name);
+    }
+
+    foreach my $attr_name ($metaclass->GetAttributeNames())
+    {
+      $obj->Set($attr_name => $data->{$attr_name})
+        if exists($data->{$attr_name});
     }
 
     $obj->Verify();
