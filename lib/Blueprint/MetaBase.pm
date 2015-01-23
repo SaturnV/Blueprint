@@ -129,7 +129,7 @@ sub _AddHook
   my $order = $self->GetOwnConfig("hook_order.$hook_name");
   $self->_SetConfig("hook_order.$hook_name", $order = [])
     unless $order;
-  push(@{$order}, $id)
+  unshift(@{$order}, $id)
     unless (List::MoreUtils::any(sub { $id eq $_ }, @{$order}));
     # For some reason beyond me this doesn't work:
     # unless (List::MoreUtils::any { $id eq $_ } @{$order});
