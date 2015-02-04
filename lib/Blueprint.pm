@@ -312,6 +312,12 @@ sub _Set
   return shift->__bp_run_hook('_Set', @_);
 }
 
+sub Pick
+{
+  # my ($self, @ns) = @_;
+  return shift->__bp_run_hook('Pick', @_);
+}
+
 # TODO
 # IsSet
 # Clear

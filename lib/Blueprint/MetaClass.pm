@@ -315,6 +315,15 @@ sub __bp_ClearDirty
   return $obj;
 }
 
+# ---- Pick -------------------------------------------------------------------
+
+sub __bp_Pick
+{
+  my ($hook_name, $stash, $metaclass, $obj, @ns) = @_;
+  return map { ($_ => scalar($obj->Get($_))) } @ns if wantarray;
+  return { map { ($_ => scalar($obj->Get($_))) } @ns };
+}
+
 # ---- Edit -------------------------------------------------------------------
 
 sub __bp_Edit
