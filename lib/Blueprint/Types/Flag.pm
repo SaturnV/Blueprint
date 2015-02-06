@@ -19,6 +19,10 @@ sub infect
     $meta->Croak("No mask");
   $meta->_SetConfig('mask' => $mask);
 
+  my $field = delete($config->{':field'});
+  $meta->_SetConfig('field' => $field)
+    if defined($field);
+
   $self->_infect($meta, 'Get');
   $self->_infect($meta, 'RawSet');
 
