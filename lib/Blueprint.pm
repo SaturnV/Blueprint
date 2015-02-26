@@ -317,6 +317,7 @@ sub Pick
   # my ($self, @ns) = @_;
   return shift->__bp_run_hook('Pick', @_);
 }
+sub Picks { return scalar(shift->Pick(@_)) }
 
 # TODO
 # IsSet
