@@ -11,8 +11,13 @@ use parent qw( Essence::Logger::Mixin Blueprint::InheritableData );
 
 use Essence::Module;
 use List::Util;
+use Carp;
 
 use Blueprint::Utils;
+
+###### VARS ###################################################################
+
+our %HookCache;
 
 ###### METHODS ################################################################
 
@@ -122,6 +127,17 @@ sub AddTrait
 
 # ==== Hooks ==================================================================
 
+# Handlers are called with $next as first parameter
+# A handler should look like this:
+# sub __some_hook_handler
+# {
+#   my ($next, @rest) = @_;
+#   return $next->(@rest);
+# }
+# So $next is called without $next.
+
+# ---- Add / Remove / _Get ----------------------------------------------------
+
 sub _AddHook
 {
   my ($self, $hook_name, $id, $sub) = @_;
@@ -134,7 +150,10 @@ sub _AddHook
     # For some reason beyond me this doesn't work:
     # unless (List::MoreUtils::any { $id eq $_ } @{$order});
 
-  $self->_SetConfig("hooks.$id.$hook_name", $sub);
+  $self->_SetConfig("hooks.$id.$hook_name", { 'id' => $id, 'cb' => $sub });
+
+  # TODO This seems like an overkill
+  %HookCache = ();
 
   return $self;
 }
@@ -156,68 +175,90 @@ sub _RemoveHook
   }
 
   $self->_ClearConfig("hooks.$id.$hook_name");
+
+  # TODO This seems like an overkill
+  %HookCache = ();
+
+  return $self;
 }
+
+sub _GetHook
+{
+  my ($self, $hook_name) = @_;
+  my @handlers;
+  my $order = $self->GetOwnConfig("hook_order.$hook_name");
+  @handlers = map { $self->GetConfig("hooks.$_.$hook_name") } @{$order}
+    if $order;
+  return reverse(@handlers);
+}
+
+# ---- Run --------------------------------------------------------------------
 
 sub _RunHook
 {
   my ($self, $hook_name) = (shift, shift);
-
-  # Shortcut 1
-  my $order = $self->GetConfig("hook_order.$hook_name");
-  return $self->_HookTerminator($hook_name, @_)
-    unless $order;
-
-  my ($sub, @callbacks);
-  foreach my $id (@{$order})
-  {
-    push(@callbacks, $sub)
-      if ($sub = $self->GetConfig("hooks.$id.$hook_name"));
-  }
-
-  # Shortcut 2
-  return $self->_HookTerminator($hook_name, @_)
-    unless @callbacks;
-
-  # Handlers are called with $next as first parameter
-  # A handler should look like this:
-  # sub __some_hook_handler
-  # {
-  #   my ($next, @rest) = @_;
-  #   return $next->(@rest);
-  # }
-  # So $next is called without $next.
-
-  # This is the last $next => no need to shift $next
-  my $hook = sub { return $self->_HookTerminator($hook_name, @_) };
-
-  while (@callbacks)
-  {
-    my $next = $hook;
-    my $cb = pop(@callbacks);
-    $hook = sub { return $cb->($next, @_) };
-  }
-
-  return $hook->(@_);
+  my $handler =
+      $HookCache{$self}->{$hook_name} //=
+          $self->_BuildHandler($hook_name);
+  return $handler->(@_);
 }
 
-# Forward to ancestors then call default
-sub _HookTerminator
+sub _BuildHandler
 {
-  # ($self, $hook_name, @run_hook_args) = @_;
-  my $self = shift;
+  my ($self, $hook_name) = @_;
+  my $handler = $self->_HookDefaultAction($hook_name);
 
-  my $stash = List::Util::first { ref($_) eq 'Blueprint::_Stash' } @_;
-  my $next_ancestor = $stash->{'Blueprint::MetaBase::NextAncestor'} //= [];
-  unshift(@{$next_ancestor}, $self->GetAncestors());
+  foreach ($self->_GetHookCallbacks($hook_name))
+  {
+    my $next = $handler;
+    my $cb = $_;
+    $handler = sub { return $cb->($next, @_) };
+  }
 
-  return @{$next_ancestor} ?
-      shift(@{$next_ancestor})->_RunHook(@_) :
-      $self->_HookDefaultAction(@_);
+  return $handler;
 }
+
+sub _GetHookHandlers
+{
+  my ($self, $hook_name) = @_;
+
+  my $id;
+  my @order;
+  my %handlers;
+  foreach my $ancestor (reverse($self->_GetAncestors()))
+  {
+    foreach ($ancestor->_GetHookHandlers($hook_name))
+    {
+      if (!exists($handlers{$id = $_->{'id'}}))
+      {
+        $handlers{$id} = $_;
+        push(@order, $id);
+      }
+    }
+  }
+
+  foreach ($self->_GetHook($hook_name))
+  {
+    push(@order, $id)
+      unless exists($handlers{$id = $_->{'id'}});
+    $handlers{$id} = $_
+  }
+
+  return @handlers{@order};
+}
+
+sub _GetHookCallbacks
+{
+  my ($self, $hook_name) = @_;
+  return map { $_->{'cb'} ? ($_->{'cb'}) : () }
+      $self->_GetHookHandlers($hook_name);
+}
+
+# ---- Default ----------------------------------------------------------------
 
 sub _HookDefaultAction
 {
-  my ($self, $hook_name) = (shift, shift);
+  my ($self, $hook_name) = @_;
   my $class = ref($self) || $self;
 
   my $dh;
@@ -226,8 +267,8 @@ sub _HookDefaultAction
     $dh = ${"${class}::DefaultHandlers"}->{$hook_name};
   }
 
-  return $dh->(@_) if ($dh && ($dh = $dh->{'cb'}));
-  return;
+  return $dh && $dh->{'cb'} ||
+      sub { confess "No handler for '$hook_name'" };
 }
 
 sub add_default_handler

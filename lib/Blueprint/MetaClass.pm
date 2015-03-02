@@ -379,22 +379,27 @@ sub __forward_to_attr
 
 sub _HookDefaultAction
 {
-  # ($self, $hook_name, @run_hook_args) = @_;
-  my $sub;
+  my ($self, $hook_name) = @_;
 
-  if ($sub = $_[0]->can("__bp_$_[1]"))
+  if (my $sub = $self->can("__bp_$hook_name"))
   {
-    shift; shift;
-    return $sub->(@_);
+    return $sub;
   }
-  elsif ($_[1] =~ $ReAttrMethods)
+  elsif ($hook_name =~ $ReAttrMethods)
   {
-    shift; shift;
-    return __forward_to_attr(@_);
+    return \&__forward_to_attr;
   }
-
-  return shift->next::method(@_);
+  else
+  {
+    return shift->next::method(@_);
+  }
 }
+
+###### CODE ###################################################################
+
+__PACKAGE__->add_default_handler(
+    $_, __PACKAGE__, sub { return })
+  foreach (qw( _Meta_BuildBegin _Meta_BuildEnd ));
 
 ###############################################################################
 

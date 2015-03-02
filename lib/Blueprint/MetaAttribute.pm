@@ -226,15 +226,16 @@ sub __bp_verify
 
 sub _HookDefaultAction
 {
-  # ($self, $hook_name, @run_hook_args) = @_;
+  my ($self, $hook_name) = @_;
 
   if (my $sub = $_[0]->can("__bp_$_[1]"))
   {
-    shift; shift;
-    return $sub->(@_) if $sub;
+    return $sub;
   }
-
-  return shift->next::method(@_);
+  else
+  {
+    return shift->next::method(@_);
+  }
 }
 
 ###############################################################################
