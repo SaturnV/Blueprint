@@ -105,7 +105,7 @@ sub GetAttributeNamesWithMeta
 
   my $metaattr;
   my $attributes = $metaclass->{'%attributes'};
-  ATTR: foreach my $attr_name (keys(%{$attributes}))
+  ATTR: foreach my $attr_name (@{$metaclass->{'@attributes'}})
   {
     $metaattr = $attributes->{$attr_name};
 
