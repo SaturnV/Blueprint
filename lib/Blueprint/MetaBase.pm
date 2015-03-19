@@ -18,6 +18,7 @@ use Blueprint::Utils;
 ###### VARS ###################################################################
 
 our %HookCache;
+our %ConfigCache;
 
 ###### METHODS ################################################################
 
@@ -309,7 +310,9 @@ sub GetConfig
 {
   # my ($self, $n) = (shift, shift);
   # return $self->_Get("config.$n", @_);
-  return shift->_Get('config.' . shift, @_);
+  # return shift->_Get('config.' . shift, @_);
+  my $t = $ConfigCache{$_[0]}->{$_[1]} //= [$_[0]->_Get("config.$_[1]")];
+  return wantarray ? @{$t} : $t->[0];
 }
 
 sub GetOwnConfig
@@ -323,6 +326,10 @@ sub _SetConfig
 {
   # my ($self, $n) = (shift, shift);
   # return $self->_Set("config.$n", @_);
+
+  # TODO This seems like an overkill
+  %ConfigCache = ();
+
   return shift->_Set('config.' . shift, @_);
 }
 
@@ -330,6 +337,10 @@ sub _ClearConfig
 {
   # my ($self, $n) = (shift, shift);
   # return $self->_Clear("config.$n", @_);
+
+  # TODO This seems like an overkill
+  %ConfigCache = ();
+
   return shift->_Clear('config.' . shift, @_);
 }
 
