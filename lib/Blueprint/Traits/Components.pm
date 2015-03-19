@@ -113,7 +113,6 @@ sub __assemble
   my $obj = $class->_new();
   $obj->{':components'} = [@components];
   $obj->_Initialize(@init);
-  $obj->Verify($stash);
 
   return $obj;
 }
