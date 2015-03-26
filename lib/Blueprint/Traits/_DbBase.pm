@@ -129,7 +129,7 @@ sub DbInsert
   croak "$mod_name: DbInsert called on $obj (class)"
     unless ref($obj);
 
-  my $db_obj = $obj->SerializeToDb($stash);
+  my ($db_obj, @fields) = $obj->SerializeToDb($stash);
 
   my $db = $stash->Get('db') or
     croak "$mod_name: DbInsert: No db";
@@ -163,6 +163,8 @@ sub DbInsert
       if defined($v);
   }
 
+  $obj->ClearDirty(@fields);
+
   return $ret;
 }
 
@@ -171,12 +173,13 @@ sub DbInsert
 sub DbUpdate
 {
   my ($obj, $stash, $opts) = @_;
+  my $ret;
 
   croak "$mod_name: DbUpdate called on $obj (class)"
     unless ref($obj);
 
-  my ($db_obj) = $obj->SerializeToDb($stash, ':dirty');
-  return 0 unless $db_obj;
+  my ($db_obj, @fields) = $obj->SerializeToDb($stash, ':dirty');
+  return 0 unless %{$db_obj};
 
   my $db = $stash->Get('db') or
     croak "$mod_name: DbUpdate: No db";
@@ -188,7 +191,11 @@ sub DbUpdate
 
   my $where = $obj->{':db.where'} // $obj->_DbWhere($stash, 'DbUpdate');
 
-  return $db->do_update($table, $db_obj, $where, $opts);
+  $ret = $db->do_update($table, $db_obj, $where, $opts);
+
+  $obj->ClearDirty(@fields);
+
+  return $ret;
 }
 
 # ==== DELETE =================================================================

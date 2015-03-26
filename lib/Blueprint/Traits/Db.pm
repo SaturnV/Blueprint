@@ -56,6 +56,7 @@ sub __SerializeToDb_Class
   my (undef, $hook_name, $stash, $metaclass, $obj) =
       (shift, shift, shift, shift, @_);
   my $ret = {};
+  my @fields;
 
   $metaclass->Croak(
       "SerializeToJson called on $obj (class)")
@@ -66,6 +67,7 @@ sub __SerializeToDb_Class
   {
     $metaattr = $metaclass->GetAttribute($f);
     next unless $metaattr->GetMeta('db');
+    push(@fields, $f);
 
     @v = $metaattr->_RunHook(
         $hook_name, $hook_name, $stash, $metaclass, $metaattr,
@@ -73,7 +75,7 @@ sub __SerializeToDb_Class
     $ret->{$f} = $v[0] if @v;
   }
 
-  return %{$ret} ? ($ret) : () if wantarray;
+  return ($ret, @fields) if wantarray;
   return $ret;
 }
 
