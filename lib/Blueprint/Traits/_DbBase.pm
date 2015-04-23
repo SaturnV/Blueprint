@@ -253,6 +253,14 @@ sub db_create
   return $obj;
 }
 
+sub DbSave
+{
+  my $obj = shift;
+  return exists($obj->{':db.where'}) ?
+      $obj->DbUpdate(@_) :
+      $obj->DbInsert(@_);
+}
+
 ###############################################################################
 
 1
