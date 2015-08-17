@@ -161,6 +161,7 @@ sub DbInsert
     my $v = $db->db_op('last_insert_id', undef, undef, undef, undef);
     $obj->_Set($stash, $serial => $v)
       if defined($v);
+    $obj->{':db.where'} = $obj->_DbWhere($stash, 'DbInsert');
   }
 
   $obj->ClearDirty(@fields);
@@ -193,6 +194,7 @@ sub DbUpdate
 
   $ret = $db->do_update($table, $db_obj, $where, $opts);
 
+  $obj->{':db.where'} = $obj->_DbWhere($stash, 'DbUpdate');
   $obj->ClearDirty(@fields);
 
   return $ret;
