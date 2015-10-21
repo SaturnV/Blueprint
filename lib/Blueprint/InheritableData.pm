@@ -93,7 +93,7 @@ sub _Clear
   # my ($self, $n) = @_;
   my ($c, $n) = @_;
 
-  my @keys = split(/./, $n);
+  my @keys = split(/\./, $n);
   my $last = pop(@keys);
   while (@keys)
   {
