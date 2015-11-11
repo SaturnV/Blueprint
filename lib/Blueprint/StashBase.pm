@@ -91,4 +91,11 @@ sub Singleton
   return $ret;
 }
 
+sub Base
+{
+  my ($base) = @_;
+  $base = $base->{':base'} while $base->{':base'};
+  return $base;
+}
+
 1
